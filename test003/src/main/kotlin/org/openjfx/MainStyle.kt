@@ -15,6 +15,8 @@ class MainStyle: Stylesheet() {
             fontSize = 14.px
         }
         listView {
+            backgroundColor = multi(Color.RED)
+            padding = box(0.px)
             listCell {
                 backgroundColor = multi(c(AppColor.background))
                 and(selected) {

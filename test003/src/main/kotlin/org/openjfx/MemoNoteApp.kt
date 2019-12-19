@@ -4,25 +4,33 @@ import javafx.application.Platform
 import javafx.geometry.Pos
 import javafx.scene.image.Image
 import javafx.scene.paint.Color
+import javafx.stage.Modality
+import javafx.stage.Screen
 import javafx.stage.Stage
 import javafx.stage.StageStyle
 import tornadofx.*
 import java.awt.TrayIcon
+import java.awt.Window
 import javax.imageio.ImageIO
+import javax.swing.Spring.height
 
 fun main(args: Array<String>) {
     launch<MyApp>(args)
 }
 
 class MyApp: App(RootView::class, MainStyle::class) {
+    val controller: NoteController by inject()
     init{
         reloadStylesheetsOnFocus()
     }
 
     override fun start(stage: Stage) {
         //작업표시줄 가리기
-        stage.initStyle(StageStyle.UNDECORATED
-        )
+        stage.initStyle(StageStyle.UNDECORATED)
+        stage.width = 200.0
+        stage.height = 200.0
+        stage.x = controller.primaryScreenBounds.maxX - stage.width - 100
+        stage.y = controller.primaryScreenBounds.maxY - stage.height - 100
         super.start(stage)
 //        stage.toBack()
         //TrayIcon 전시할 이미지 가져옴
@@ -39,7 +47,8 @@ class MyApp: App(RootView::class, MainStyle::class) {
             menu("Open") {
                 item("Show...") {
                     setOnAction(fxThread = true) {
-                        MainView().openWindow(owner = null, stageStyle = StageStyle.UTILITY,
+                        var mainView = MainView()
+                        mainView.openWindow(owner = null, stageStyle = StageStyle.UTILITY,
                         escapeClosesWindow = false)
                     }
                 }
@@ -55,30 +64,31 @@ class MyApp: App(RootView::class, MainStyle::class) {
 class RootView: View(){
     val controller: NoteController by inject()
     init{
-        primaryStage.width = 200.0
-        primaryStage.height= 200.0
         primaryStage.icons.clear()
         primaryStage.icons.add(Image(this.javaClass.getResourceAsStream("/org.openjfx/icon_high.png")))
         System.out.println("icon test : " + primaryStage.icons)
-        MainView().openWindow(owner = null, stageStyle = StageStyle.UTILITY,
-            escapeClosesWindow = false)
     }
 
     override val root = vbox{
         button ("openMainView"){
-            setOnAction {
+            action {
                 MainView().openWindow(owner = null, stageStyle = StageStyle.UTILITY,
-                    escapeClosesWindow = false)
+                    escapeClosesWindow = false).apply {
+                    this?.x = controller.primaryScreenBounds.maxX - this!!.width - 100
+                    this?.y = controller.primaryScreenBounds.maxY - this!!.height
+                    this?.toFront()
+                    this?.isAlwaysOnTop = true
+                }
             }
         }
         button ("create data"){
-            setOnAction {
+            action {
                 var id : Long = 4
                 controller.notelist.add(Note(id++, "created Note"))
             }
         }
         button ("exit") {
-            setOnAction {
+            action {
                 primaryStage.hide()
 //                Platform.exit()
 //                exitProcess(0)
@@ -86,11 +96,10 @@ class RootView: View(){
         }
     }
 }
-class MainView: View() {
+class MainView: View(){
     val controller: NoteController by inject()
     init {
-//        System.out.println("icon test : " + currentStage?.icons)
-//        primaryStage.icons.add(Image(this.javaClass.getResourceAsStream("/org.openjfx/icon_high.png")))
+        title = "MemoNote"
     }
 
     override val root = vbox {
