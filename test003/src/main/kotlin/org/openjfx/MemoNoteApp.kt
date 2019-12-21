@@ -2,6 +2,7 @@ package org.openjfx
 
 import javafx.application.Platform
 import javafx.geometry.Pos
+import javafx.scene.Parent
 import javafx.scene.image.Image
 import javafx.scene.paint.Color
 import javafx.stage.Modality
@@ -40,16 +41,27 @@ class MyApp: App(RootView::class, MainStyle::class) {
         //SystemTray지원 가능 여부 확인
         trayicon(resources.stream("/org.openjfx/icon_high.png")){
             setOnMouseClicked(fxThread = true){
-                FX.primaryStage.show()
-                FX.primaryStage.toFront()
+//                FX.primaryStage.show()
+//                FX.primaryStage.toFront()
+                MainView().openWindow(owner = null, stageStyle = StageStyle.UTILITY,
+                    escapeClosesWindow = false).apply {
+                    this?.x = controller.primaryScreenBounds.maxX - this!!.width - 100
+                    this?.y = controller.primaryScreenBounds.maxY - this!!.height
+                    this?.toFront()
+                    this?.isAlwaysOnTop = true
+                }
             }
 
             menu("Open") {
                 item("Show...") {
                     setOnAction(fxThread = true) {
-                        var mainView = MainView()
-                        mainView.openWindow(owner = null, stageStyle = StageStyle.UTILITY,
-                        escapeClosesWindow = false)
+                        MainView().openWindow(owner = null, stageStyle = StageStyle.UTILITY,
+                        escapeClosesWindow = false).apply {
+                            this?.x = controller.primaryScreenBounds.maxX - this!!.width - 100
+                            this?.y = controller.primaryScreenBounds.maxY - this!!.height
+                            this?.toFront()
+                            this?.isAlwaysOnTop = true
+                        }
                     }
                 }
                 item("Exit") {
@@ -61,6 +73,8 @@ class MyApp: App(RootView::class, MainStyle::class) {
         }
     }
 }
+
+
 class RootView: View(){
     val controller: NoteController by inject()
     init{
@@ -69,7 +83,7 @@ class RootView: View(){
         System.out.println("icon test : " + primaryStage.icons)
     }
 
-    override val root = vbox{
+        override val root = vbox{
         button ("openMainView"){
             action {
                 MainView().openWindow(owner = null, stageStyle = StageStyle.UTILITY,
@@ -94,56 +108,5 @@ class RootView: View(){
 //                exitProcess(0)
             }
         }
-    }
-}
-class MainView: View(){
-    val controller: NoteController by inject()
-    init {
-        title = "MemoNote"
-    }
-
-    override val root = vbox {
-        style {
-            prefHeight = Dimension(300.0, Dimension.LinearUnits.px)
-        }
-        listview(controller.notelist){
-            style {
-//                prefHeight = Dimension(parent.layoutY, Dimension.LinearUnits.px)
-                prefHeight = Dimension(3000.0, Dimension.LinearUnits.px)
-            }
-            cellFormat {
-                style{
-                    padding = box(0.px)
-                    backgroundColor = multi(c(AppColor.white))//background
-                }
-                graphic = //cache {
-                        fieldset {
-                            vbox{
-                                label("${it.content}") {
-                                    style {
-                                        useMaxHeight = true
-                                        useMaxWidth = true
-                                        alignment = Pos.CENTER
-                                        padding = box(10.px,0.px,10.px,0.px)
-                                    }
-                                }
-                                vbox {
-                                    style{
-                                        minHeight = Dimension(1.0, Dimension.LinearUnits.px)
-                                        backgroundColor = multi(Color.LIGHTGRAY)
-                                    }
-                                }
-                            }
-//                  }
-                }
-            }
-        }
-    }
-
-    override fun onDock() {
-        println("Docking MyView2!")
-    }
-    override fun onUndock() {
-        println("Undocking MyView2!")
     }
 }
